@@ -49,23 +49,25 @@ if page == "Shipment Tracking":
     if shipment_id:
 
         query = """
-SELECT 
-    s.shipment_id,
-    s.origin,
-    s.destination,
-    s.status,
-    s.courier_id,
-    r.distance_km,
-    r.avg_time_hours,
-    (c.fuel_cost + c.labor_cost + c.misc_cost) AS total_cost
-FROM shipments s
-LEFT JOIN routes r 
-    ON s.origin = r.origin 
-    AND s.destination = r.destination
-LEFT JOIN costs c 
-    ON s.shipment_id = c.shipment_id
-WHERE s.shipment_id = %s
-"""
+        SELECT 
+            s.shipment_id,
+            s.origin,
+            s.destination,
+            s.status,
+            s.courier_id,
+            r.distance_km,
+            r.avg_time_hours,
+            COALESCE(c.fuel_cost,0) +
+            COALESCE(c.labor_cost,0) +
+            COALESCE(c.misc_cost,0) AS total_cost
+        FROM shipments s
+        LEFT JOIN routes r 
+            ON s.origin = r.origin 
+            AND s.destination = r.destination
+        LEFT JOIN costs c 
+            ON s.shipment_id = c.shipment_id
+        WHERE s.shipment_id = %s
+        """
 
         df = pd.read_sql(query, conn, params=(shipment_id,))
 
@@ -77,10 +79,10 @@ WHERE s.shipment_id = %s
 
             st.subheader("📊 Shipment Summary")
 
-            st.write("📍 Origin:", df["origin"][0])
-            st.write("🏁 Destination:", df["destination"][0])
-            st.write("🚦 Status:", df["status"][0])
-            st.write("💰 Total Cost:", df["total_cost"][0])
+            st.write("📍 Origin:", df.loc[0, "origin"])
+            st.write("🏁 Destination:", df.loc[0, "destination"])
+            st.write("🚦 Status:", df.loc[0, "status"])
+            st.write("💰 Total Cost:", df.loc[0, "total_cost"])
 # -----------------------
 # ROUTE EFFICIENCY
 # -----------------------
@@ -133,22 +135,27 @@ elif page == "Cost Analysis":
 # -----------------------
 # COURIER PERFORMANCE
 # -----------------------
+# -----------------------
+# COURIER PERFORMANCE
+# -----------------------
 elif page == "Courier Performance":
 
     st.header("👨‍✈️ Courier Workload")
 
     query = """
-SELECT 
-    c.name AS courier_name,
-    COUNT(s.shipment_id) AS total_shipments
-FROM shipments s
-JOIN courier_staff c 
-    ON s.courier_id = c.courier_id
-GROUP BY c.name
-ORDER BY total_shipments DESC
-LIMIT 20;
-"""
-df = pd.read_sql(query, conn)
+    SELECT 
+        c.name AS courier_name,
+        COUNT(s.shipment_id) AS total_shipments
+    FROM shipments s
+    JOIN courier_staff c 
+        ON s.courier_id = c.courier_id
+    GROUP BY c.name
+    ORDER BY total_shipments DESC
+    LIMIT 20;
+    """
 
-st.dataframe(df)
-st.bar_chart(df.set_index("courier_name")["total_shipments"])
+    df = pd.read_sql(query, conn)   # ✅ YOU FORGOT THIS LINE
+
+    st.dataframe(df)
+    st.bar_chart(df.set_index("courier_name")["total_shipments"])
+
