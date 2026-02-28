@@ -103,8 +103,52 @@ for i, row in enumerate(warehouses):
     ))
 
 print("Warehouses inserted!")
-                           
-            
+
+#shipment_tracking.csv file
+print("Loading shipment_tracking.csv...")
+
+with open("shipment_tracking.csv", "r", encoding="utf-8") as file:
+    reader = csv.DictReader(file)
+    for row in reader:
+        cursor.execute("""
+            INSERT IGNORE INTO shipment_tracking (
+                tracking_id, shipment_id,
+                       status, timestamp
+            )
+            VALUES (%s, %s, %s, %s)
+        """, (
+            row["tracking_id"],
+            row["shipment_id"],
+            row["status"],
+            row["timestamp"]
+        ))
+
+print("Shipment tracking data inserted!")
+
+# routes.csv file
+print("Loading routes")
+
+import csv
+
+with open("routes.csv", "r", encoding="utf-8") as file:
+    reader = csv.DictReader(file)
+    
+    for row in reader:
+        cursor.execute("""
+            INSERT IGNORE INTO routes (
+                route_id, origin, destination,
+                distance_km, avg_time_hours
+            )
+            VALUES (%s, %s, %s, %s, %s)
+        """, (
+            row["route_id"],
+            row["origin"],
+            row["destination"],
+            row["distance_km"],
+            row["avg_time_hours"]
+        ))
+
+print("Routes inserted successfully!")
 # ---------------------------------------------------
 # COMMIT & CLOSE
 # ---------------------------------------------------
