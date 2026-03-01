@@ -46,17 +46,45 @@ CREATE TABLE shipment_tracking (
     tracking_id INT AUTO_INCREMENT PRIMARY KEY,
     shipment_id VARCHAR(20) NOT NULL,
     status VARCHAR(50) NOT NULL,
-    update_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (shipment_id) 
         REFERENCES shipments(shipment_id)
         ON DELETE CASCADE
 );
+CREATE TABLE routes (
+    route_id INT PRIMARY KEY,
+    origin VARCHAR(100) NOT NULL,
+    destination VARCHAR(100) NOT NULL,
+    distance_km DECIMAL(10,2) NOT NULL,
+    avg_time_hours DECIMAL(5,2) NOT NULL
+);
+
 USE logistics_db;
+SELECT 
+    DATE_FORMAT(order_date, '%Y-%m') AS order_month,
+    COUNT(*) AS total_orders
+FROM shipments
+GROUP BY order_month
+ORDER BY order_month;
+SELECT 
+    destination,
+    COUNT(shipment_id) AS total_shipments
+FROM shipments
+GROUP BY destination
+ORDER BY total_shipments DESC
+LIMIT 10;
+
 
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE costs;
 TRUNCATE TABLE shipments;
 SET FOREIGN_KEY_CHECKS = 1;
-SHOW databases:
 DESCRIBE warehouses;
+SELECT COUNT(*) FROM routes;
+SELECT COUNT(*) FROM warehouses;
+SELECT COUNT(*) FROM shipment_tracking;
+SELECT COUNT(*) FROM shipments;
+SELECT COUNT(*) FROM costs;
+SELECT COUNT(*) FROM courier_staff;
+
 

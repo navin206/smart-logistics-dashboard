@@ -38,11 +38,12 @@ st.sidebar.title("📊 Navigation")
 
 page = st.sidebar.radio(
     "Go to",
-    ["Shipment Tracking", "Route Efficiency", "Cost Analysis", "Courier Performance"]
+    ["Shipment Tracking","Order Trends", "Route Efficiency", "Cost Analysis", "Courier Performance"]
 )
 if page == "Shipment Tracking":
 
     st.header("📦 Shipment Tracking System")
+    
 
     shipment_id = st.text_input("Enter Shipment ID")
 
@@ -100,7 +101,7 @@ elif page == "Route Efficiency":
         (distance_km / avg_time_hours) AS speed_kmph
     FROM routes
     ORDER BY speed_kmph ASC
-    LIMIT 5;
+    LIMIT 20;
     """
 
     df = pd.read_sql(query, conn)
@@ -109,7 +110,7 @@ elif page == "Route Efficiency":
     st.dataframe(df)
 
     st.subheader("📊 Speed Chart")
-    st.bar_chart(df.set_index("route_id")["speed_kmph"])
+    st.bar_chart(df.set_index("origin")["speed_kmph"])
 
 # -----------------------
 # COST ANALYSIS
@@ -145,17 +146,38 @@ elif page == "Courier Performance":
     query = """
     SELECT 
         c.name AS courier_name,
+        c.rating,
+        c.vehicle_type,
         COUNT(s.shipment_id) AS total_shipments
     FROM shipments s
     JOIN courier_staff c 
         ON s.courier_id = c.courier_id
-    GROUP BY c.name
+    GROUP BY c.name, c.rating, c.vehicle_type
     ORDER BY total_shipments DESC
     LIMIT 20;
     """
 
-    df = pd.read_sql(query, conn)   # ✅ YOU FORGOT THIS LINE
+    df = pd.read_sql(query, conn)
 
     st.dataframe(df)
     st.bar_chart(df.set_index("courier_name")["total_shipments"])
+elif page == "Order Trends":
+
+    st.header("📈 Monthly Order Trend")
+
+    query = """
+    SELECT 
+        DATE_FORMAT(order_date, '%Y-%m') AS order_month,
+        COUNT(*) AS total_orders
+    FROM shipments
+    GROUP BY order_month
+    ORDER BY order_month;
+    """
+
+    df = pd.read_sql(query, conn)
+
+    st.dataframe(df)
+
+    st.line_chart(df.set_index("order_month")["total_orders"])
+    df2 = pd.read_sql(query, conn)
 
