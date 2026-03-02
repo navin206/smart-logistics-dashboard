@@ -1,4 +1,4 @@
-print("RUNNING NAVIN DATA SCRIPT VERSION 2")
+print("RUNNING VERSION 2")
 import mysql.connector
 import json
 import csv
@@ -80,7 +80,7 @@ with open("costs.csv", "r", encoding="utf-8") as file:
 print("Costs inserted!")
 
 #Warehouses.json file
-# Warehouses.json file
+
 print("Loading warehouses.json...")
 
 with open("warehouses.json", "r", encoding="utf-8") as file:
@@ -149,9 +149,7 @@ with open("routes.csv", "r", encoding="utf-8") as file:
         ))
 
 print("Routes inserted successfully!")
-# ---------------------------------------------------
-# COMMIT & CLOSE
-# ---------------------------------------------------
+
 connection.commit()
 cursor.close()
 connection.close()

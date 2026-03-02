@@ -21,19 +21,38 @@ try:
     result2 = cursor.fetchone()
     cursor.execute("SELECT COUNT(*) FROM courier_staff")
     result3 = cursor.fetchone()
+    
+    cursor.execute("SELECT SUM(CASE WHEN status = 'Delivered' THEN 1 ELSE 0 END) AS delivered_count FROM shipments")
+    result4 = cursor.fetchone()
 
-    st.success("Database Connected Successfully")
+    cursor.execute("SELECT SUM(CASE WHEN status = 'In Transit' THEN 1 ELSE 0 END) AS in_transit_count FROM shipments")
+    result5 = cursor.fetchone()
+
+    cursor.execute("SELECT SUM(CASE WHEN status = 'Out for Delivery' THEN 1 ELSE 0 END) AS out_for_delivery_count FROM shipment_tracking")
+    result6 = cursor.fetchone()
+
+    cursor.execute("SELECT SUM(CASE WHEN status = 'Cancelled' THEN 1 ELSE 0 END) AS cancelled_count FROM shipment_tracking")
+    result7 = cursor.fetchone()
+
+    cursor.execute("SELECT SUM(CASE WHEN status = 'Order Placed' THEN 1 ELSE 0 END) AS order_placed_count FROM shipment_tracking")
+    result8 = cursor.fetchone()
+    st.success("Database Connected Successfully")   
     st.write("📦 Total Shipments:", result[0])
     st.write("🏢 Total Warehouses:", result2[0])
     st.write("👨‍✈️ Courier Staff:", result3[0])
+    st.write("✅ Delivered Shipments:", result4[0])
+    st.write("🚚 In Transit Shipments:", result5[0])
+    st.write("📍 Out for Delivery Shipments:", result6[0])
+    st.write("❌ Cancelled Shipments:", result7[0])
+    st.write("🛒 Order Placed :", result8[0])
+    
 
 except Exception as e:
     st.error("Error occurred:")
     st.write(e)
 
-# -----------------------
 # SIDEBAR
-# -----------------------
+
 st.sidebar.title("📊 Navigation")
 
 page = st.sidebar.radio(
@@ -69,7 +88,7 @@ if page == "Shipment Tracking":
             ON s.shipment_id = c.shipment_id
         WHERE s.shipment_id = %s
         """
-
+    
         df = pd.read_sql(query, conn, params=(shipment_id,))
 
         if df.empty:
@@ -84,9 +103,10 @@ if page == "Shipment Tracking":
             st.write("🏁 Destination:", df.loc[0, "destination"])
             st.write("🚦 Status:", df.loc[0, "status"])
             st.write("💰 Total Cost:", df.loc[0, "total_cost"])
-# -----------------------
+        
+        
 # ROUTE EFFICIENCY
-# -----------------------
+
 elif page == "Route Efficiency":
 
     st.header("🚦 Route Efficiency Analysis")
@@ -101,23 +121,22 @@ elif page == "Route Efficiency":
         (distance_km / avg_time_hours) AS speed_kmph
     FROM routes
     ORDER BY speed_kmph ASC
-    LIMIT 20;
+    LIMIT 10;
     """
-
+    
     df = pd.read_sql(query, conn)
 
     st.subheader("📉 Slowest Routes")
     st.dataframe(df)
-
-    st.subheader("📊 Speed Chart")
     st.bar_chart(df.set_index("origin")["speed_kmph"])
 
-# -----------------------
 # COST ANALYSIS
-# -----------------------
+
 elif page == "Cost Analysis":
 
     st.header("💰 Shipment Cost Analysis")
+    st.header("Highly Expensive Shipments")
+
 
     query = """
     SELECT 
@@ -125,7 +144,7 @@ elif page == "Cost Analysis":
         (fuel_cost + labor_cost + misc_cost) AS total_cost
     FROM costs
     ORDER BY total_cost DESC
-    LIMIT 5;
+    LIMIT 20;
     """
 
     df = pd.read_sql(query, conn)
@@ -133,12 +152,9 @@ elif page == "Cost Analysis":
     st.dataframe(df)
     st.bar_chart(df.set_index("shipment_id")["total_cost"])
 
-# -----------------------
+
 # COURIER PERFORMANCE
-# -----------------------
-# -----------------------
-# COURIER PERFORMANCE
-# -----------------------
+
 elif page == "Courier Performance":
 
     st.header("👨‍✈️ Courier Workload")
@@ -161,6 +177,9 @@ elif page == "Courier Performance":
 
     st.dataframe(df)
     st.bar_chart(df.set_index("courier_name")["total_shipments"])
+
+    # Order Trends
+
 elif page == "Order Trends":
 
     st.header("📈 Monthly Order Trend")
@@ -179,5 +198,18 @@ elif page == "Order Trends":
     st.dataframe(df)
 
     st.line_chart(df.set_index("order_month")["total_orders"])
-    df2 = pd.read_sql(query, conn)
+    
+    query2 = """
+    SELECT
+        destination,
+        COUNT(shipment_id) AS total_orders
+    FROM shipments
+    GROUP BY destination
+    ORDER BY total_orders DESC
+    LIMIT 10;
+    """
+    df2 = pd.read_sql(query2, conn)
 
+    st.subheader("📊 Top Destinations by Order Count")
+    st.dataframe(df2)
+    st.bar_chart(df2.set_index("destination")["total_orders"])
