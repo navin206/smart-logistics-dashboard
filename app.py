@@ -2,6 +2,7 @@ import streamlit as st
 import mysql.connector
 import pandas as pd
 
+
 st.title("🚚 Smart Logistics Dashboard")
 
 try:
@@ -36,15 +37,32 @@ try:
 
     cursor.execute("SELECT SUM(CASE WHEN status = 'Order Placed' THEN 1 ELSE 0 END) AS order_placed_count FROM shipment_tracking")
     result8 = cursor.fetchone()
-    st.success("Database Connected Successfully")   
-    st.write("📦 Total Shipments:", result[0])
-    st.write("🏢 Total Warehouses:", result2[0])
-    st.write("👨‍✈️ Courier Staff:", result3[0])
-    st.write("✅ Delivered Shipments:", result4[0])
-    st.write("🚚 In Transit Shipments:", result5[0])
-    st.write("📍 Out for Delivery Shipments:", result6[0])
-    st.write("❌ Cancelled Shipments:", result7[0])
-    st.write("🛒 Order Placed :", result8[0])
+    col1, col2 = st.columns(2)
+    with col1:
+         st.metric("📦 Total Shipments", result[0])
+    with col2:
+         st.metric("🏢 Total Warehouses", result2[0])
+
+    # Row 2
+    col3, col4 = st.columns(2)
+    with col3:
+        st.metric("👨‍✈️ Courier Staff", result3[0])
+    with col4:
+        st.metric("✅ Delivered Shipments", result4[0])
+
+    # Row 3
+    col5, col6 = st.columns(2)
+    with col5:
+        st.metric("🚚 In Transit Shipments", result5[0])
+    with col6:
+        st.metric("📍 Out for Delivery", result6[0])
+
+    # Row 4
+    col7, col8 = st.columns(2)
+    with col7:
+        st.metric("❌ Cancelled Shipments", result7[0])
+    with col8:
+        st.metric("🛒 Orders Placed", result8[0]) 
     
 
 except Exception as e:
@@ -52,6 +70,26 @@ except Exception as e:
     st.write(e)
 
 # SIDEBAR
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #14577D;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] * {
+        color: #F4F1F1 !important;   /* Change this color */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 st.sidebar.title("📊 Navigation")
 
