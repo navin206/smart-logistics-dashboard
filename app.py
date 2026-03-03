@@ -95,7 +95,7 @@ st.sidebar.title("📊 Navigation")
 
 page = st.sidebar.radio(
     "Go to",
-    ["Shipment Tracking","Order Trends", "Route Efficiency", "Cost Analysis", "Courier Performance"]
+    ["Shipment Tracking","Order Trends", "Route Efficiency", "Cost Analysis", "Courier Performance","Logistics Overview"]
 )
 if page == "Shipment Tracking":
 
@@ -251,3 +251,50 @@ elif page == "Order Trends":
     st.subheader("📊 Top Destinations by Order Count")
     st.dataframe(df2)
     st.bar_chart(df2.set_index("destination")["total_orders"])
+
+elif page == "Logistics Overview":
+    st.header("📊 Logistics Overview")
+    st.subheader("📈 Total Vehicles")
+
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT COUNT(*) 
+        FROM courier_staff 
+        WHERE vehicle_type = 'car'
+    """)
+    
+    result = cursor.fetchone()
+    cursor.execute("""
+        SELECT COUNT(*) 
+        FROM courier_staff 
+        WHERE vehicle_type = 'van'
+    """)
+    
+    result1 = cursor.fetchone()
+    cursor.execute("""
+        SELECT COUNT(*) 
+        FROM courier_staff 
+        WHERE vehicle_type = 'bike'
+    """)
+
+    result2 = cursor.fetchone()
+    cursor.execute("""
+        SELECT COUNT(*) 
+        FROM courier_staff 
+        WHERE vehicle_type = 'truck'
+    """)
+    result3 = cursor.fetchone()
+    col1, col2 = st.columns(2)
+    with col1:
+         st.metric("🚗 Car Count", result[0])
+    with col2:
+         st.metric("🚙 Van Count", result1[0])
+    col3, col4 = st.columns(2)
+    with col3:
+         st.metric("🚛 Truck Count", result3[0])
+    with col4:
+         st.metric("🚲 Bike Count", result2[0])
+
+
+
